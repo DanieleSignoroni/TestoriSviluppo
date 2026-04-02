@@ -79,3 +79,9 @@ function selezionaLottiMultipliTestori() {
 	var key = eval("document.forms[0].thKey.value");
 	runActionDirect('SEL_MULTIPLA_LOTTI_TESTORI', 'action_submit', className, key, 'new', 'no');
 }
+
+function onSearchBackSelezionaLottiMultipliTestori() {
+	var className = eval("document.forms[0].thClassName.value");
+	var key = eval("document.forms[0].thKey.value");
+	runActionDirect('SEL_MULTIPLA_LOTTI_TESTORI_CONFERMA', 'action_submit', className, key, 'errorsFrame', 'no');
+}

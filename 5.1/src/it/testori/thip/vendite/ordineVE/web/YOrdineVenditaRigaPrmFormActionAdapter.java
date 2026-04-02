@@ -39,8 +39,6 @@ public class YOrdineVenditaRigaPrmFormActionAdapter extends OrdineVenditaRigaPrm
 
 	private static final long serialVersionUID = 1L;
 
-	public static final String SELEZIONE_MULTIPLA_LOTTI = "SEL_MULTIPLA_LOTTI_TESTORI";
-
 	@Override
 	public void modifyToolBar(WebToolBar toolBar) {
 		super.modifyToolBar(toolBar);
@@ -57,8 +55,10 @@ public class YOrdineVenditaRigaPrmFormActionAdapter extends OrdineVenditaRigaPrm
 		String azione = getAzione(se);
 		if(azione.equals(GestioneCalcoloCosti.INT_VAL_MOD_PROD_COS)) {
 			interrogazioneValorizzazioneModProCosto(cadc,se);
-		}else if(azione != null && azione.equals(SELEZIONE_MULTIPLA_LOTTI)){
+		}else if(azione != null && azione.equals(SelezioneMultiplaLottoTestori.SELEZIONE_MULTIPLA_LOTTI)){
 			selezioneMultiplaLotti(cadc,se);
+		}else if(azione != null && azione.equals(SelezioneMultiplaLottoTestori.SEL_MULTIPLA_LOTTI_TESTORI_CONFERMA)) {
+			save(cadc, se);
 		}else {
 			super.otherActions(cadc, se);
 		}
