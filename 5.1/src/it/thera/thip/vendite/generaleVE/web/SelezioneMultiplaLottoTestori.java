@@ -1,5 +1,9 @@
 package it.thera.thip.vendite.generaleVE.web;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import com.thera.thermfw.ad.ClassADCollection;
 import com.thera.thermfw.web.ServletEnvironment;
 import com.thera.thermfw.web.URLUtils;
@@ -7,6 +11,8 @@ import com.thera.thermfw.web.WebToolBarButton;
 import com.thera.thermfw.web.servlet.ShowGrid;
 
 import it.thera.thip.base.documenti.DocumentoBaseRiga;
+import it.thera.thip.base.generale.ParametroPsn;
+import it.thera.thip.cs.ColonneFiltri;
 
 /**
  *
@@ -63,6 +69,43 @@ public class SelezioneMultiplaLottoTestori extends ShowGrid {
 
 	public static String getSelezioneMultiplaLottoTestoriImmagine() {
 		return "it/testori/thip/datiTecnici/modpro/images/InterrogValMod.svg";
+	}
+
+	public static List<String> getListLottiSelezioneMultipla(String chiaviLottiMultSel) {
+		List<String> listKeys = new ArrayList<String>();
+		String listaKeys = chiaviLottiMultSel;
+		if(listaKeys == null || listaKeys.equals(""))
+			return listKeys;
+		java.util.StringTokenizer st = new java.util.StringTokenizer(listaKeys, ColonneFiltri.LISTA_SEP);
+		while (st.hasMoreTokens()) {
+			String stt = st.nextToken();
+			listKeys.add(stt);
+		}
+		return listKeys;
+	}
+
+	public static boolean isCausaliTestataAdattaQuantitaLottiRiga(String idCauTes) {
+		if(getListaCausaliTestataAdattaQuantitaLottiRiga().contains(idCauTes)) {
+			return true;
+		}
+		return false;
+	}
+
+	public static List<String> getListaCausaliTestataAdattaQuantitaLottiRiga(){
+		List<String> list = new ArrayList<String>();
+		String val = getValoreParametroCausaliTestataAdattaQuantitaLottiRiga();
+		if(val != null && !val.isEmpty()) {
+			if(val.contains("@")) {
+				list.addAll(Arrays.asList(val.split("@")));
+			}else {
+				list.add(val.trim());
+			}
+		}
+		return list;
+	}
+
+	private static String getValoreParametroCausaliTestataAdattaQuantitaLottiRiga() {
+		return ParametroPsn.getValoreParametroPsn("pers.base.comuniVenAcq.SelezioneMultiplaLotto", "CausaliAdattaQta");
 	}
 
 	@Override

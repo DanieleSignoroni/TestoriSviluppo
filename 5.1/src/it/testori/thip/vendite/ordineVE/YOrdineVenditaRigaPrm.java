@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.Vector;
 
 import com.thera.thermfw.base.Trace;
@@ -50,13 +49,13 @@ import it.thera.thip.base.documenti.StatoAvanzamento;
 import it.thera.thip.base.generale.ImportoInValutaEstera;
 import it.thera.thip.base.generale.ParametroPsn;
 import it.thera.thip.base.profilo.UtenteAzienda;
-import it.thera.thip.cs.ColonneFiltri;
 import it.thera.thip.cs.DatiComuniEstesi;
 import it.thera.thip.cs.ThipException;
 import it.thera.thip.magazzino.generalemag.Lotto;
 import it.thera.thip.magazzino.movimenti.MovimentoMagazzino;
 import it.thera.thip.magazzino.saldi.SaldoMagLotto;
 import it.thera.thip.vendite.generaleVE.PersDatiVen;
+import it.thera.thip.vendite.generaleVE.web.SelezioneMultiplaLottoTestori;
 import it.thera.thip.vendite.ordineVE.OrdineVendita;
 import it.thera.thip.vendite.ordineVE.OrdineVenditaRigaLotto;
 import it.thera.thip.vendite.ordineVE.OrdineVenditaRigaLottoPrm;
@@ -360,7 +359,6 @@ public class YOrdineVenditaRigaPrm extends OrdineVenditaRigaPrm {
 	}
 	//72273
 
-
 	public String getChiaviLottiMultSel() {
 		return iChiaviLottiMultSel;
 	}
@@ -559,13 +557,100 @@ public class YOrdineVenditaRigaPrm extends OrdineVenditaRigaPrm {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected void popolaLottiSelezioneMultipla() {
-		OrdineRigaLotto lottoDummy = dammiLottoDummy(null);
-		ArrayList righeLotto = (ArrayList)getRigheLotto();
-		((ArrayList<OrdineVenditaRigaLottoPrm>)righeLotto).stream().filter(r -> Lotto.LOTTO_DUMMY.equals((r.getIdLotto()))).findFirst().ifPresent(righeLotto::remove);
-		ArrayList totQtaLotti = caricaQuantitaLottoPublic(righeLotto);
-		BigDecimal totQtaPrmMagLotti = (BigDecimal)(totQtaLotti.get(1));
-		Iterator<String> chiaviSelezionati = getListLottiSelezioneMultipla().iterator();
+	protected void popolaLottiSelezioneMultipla() throws ThipException {
+		boolean adattaQta = SelezioneMultiplaLottoTestori.isCausaliTestataAdattaQuantitaLottiRiga(getTestata().getIdCau());
+		List<OrdineVenditaRigaLottoPrm> nuoviLotti = costruisciOrdineVenditaRigaLottoPrmListSelezioneMultipla();
+		OrdineRigaLotto lottoDummy = dammiLottoDummy(getRigheLotto());
+		if (nuoviLotti.isEmpty()) {
+			return;
+		}
+		if(adattaQta) {
+			if(nuoviLotti.size() > 0) {
+				getRigheLotto().remove(lottoDummy);
+				List<BigDecimal> totQtaLottiEsistenti = caricaQuantitaLottoPublic(getRigheLotto());
+				ArrayList totQtaLottiNuovi = caricaQuantitaLottoPublic(nuoviLotti);
+				BigDecimal qtaInUMPrm = ((BigDecimal) totQtaLottiNuovi.get(1)).add(((BigDecimal) totQtaLottiEsistenti.get(1)));
+				getQuantitaOrdinata().setQuantitaInUMPrm(qtaInUMPrm);
+				getQuantitaOrdinata().setQuantitaInUMRif(qtaInUMPrm);
+				getRigheLotto().addAll(nuoviLotti);
+			}
+		}else {
+			List<OrdineVenditaRigaLottoPrm> righe = getRigheLotto();
+			righe.addAll(nuoviLotti);
+			List righeNonDummy = new ArrayList();
+			((ArrayList<OrdineVenditaRigaLottoPrm>)righeLotto).stream().filter(r -> Lotto.LOTTO_DUMMY.equals((r.getIdLotto()))).findFirst().ifPresent(righeLotto::remove);
+			BigDecimal qtaRichiesta = getServizioQta().getQuantitaInUMPrm();
+			for (OrdineVenditaRigaLottoPrm lottoCorrente : righe) {
+				if(lottoCorrente.getIdLotto() != Lotto.LOTTO_DUMMY) { 
+					BigDecimal totaleLotti = (BigDecimal) caricaQuantitaLottoPublic(righe).get(1);
+					if (totaleLotti.compareTo(qtaRichiesta) <= 0) {
+						continue;
+					}
+					BigDecimal eccedenza = totaleLotti.subtract(qtaRichiesta);
+					// 1. Riduzione dummy
+					eccedenza = riduciDummy(lottoDummy, eccedenza);
+					// 2. Riduzione lotti esistenti
+					eccedenza = riduciLottiEsistenti(righe, eccedenza);
+					// 3. Riduzione lotto corrente
+					eccedenza = riduciLotto(lottoCorrente, eccedenza);
+					// 4. Controllo finale
+					if (eccedenza.compareTo(BigDecimal.ZERO) > 0) {
+						throw new ThipException("Impossibile riallineare le quantità dei lotti");
+					}
+				}
+			}
+		}
+	}
+
+	public BigDecimal riduciDummy(OrdineRigaLotto dummy, BigDecimal eccedenza) {
+		if (dummy == null || eccedenza.compareTo(BigDecimal.ZERO) <= 0) {
+			return eccedenza;
+		}
+		BigDecimal qta = dummy.getQtaInUMPrmMag();
+		if (qta.compareTo(BigDecimal.ONE) > 0) {
+			BigDecimal riduzione = qta.subtract(eccedenza);
+			dummy.setQtaInUMPrmMag(riduzione);
+			dummy.setQtaInUMRif(riduzione);
+			return eccedenza.subtract(riduzione);
+		}
+		return eccedenza;
+	}
+
+	public BigDecimal riduciLottiEsistenti(List<OrdineVenditaRigaLottoPrm> lotti,
+			BigDecimal eccedenza) {
+		for (OrdineVenditaRigaLottoPrm lotto : lotti) {
+			if (eccedenza.compareTo(BigDecimal.ZERO) <= 0) break;
+			if (Lotto.LOTTO_DUMMY.equals(lotto.getIdLotto())) continue;
+			BigDecimal qta = lotto.getQtaInUMPrmMag();
+			if (qta.compareTo(BigDecimal.ONE) > 0) {
+				BigDecimal riduzione = qta.subtract(BigDecimal.ONE).min(eccedenza);
+				lotto.setQtaInUMPrmMag(qta.subtract(riduzione));
+				lotto.setQtaInUMRif(lotto.getQtaInUMPrmMag());
+				eccedenza = eccedenza.subtract(riduzione);
+			}
+		}
+		return eccedenza;
+	}
+
+	public BigDecimal riduciLotto(OrdineVenditaRigaLottoPrm lotto,
+			BigDecimal eccedenza) {
+		if (eccedenza.compareTo(BigDecimal.ZERO) <= 0) {
+			return eccedenza;
+		}
+		BigDecimal qta = lotto.getQtaInUMPrmMag();
+		if (qta.compareTo(BigDecimal.ONE) > 0) {
+			BigDecimal riduzione = qta.subtract(BigDecimal.ONE).min(eccedenza);
+			lotto.setQtaInUMPrmMag(qta.subtract(riduzione));
+			lotto.setQtaInUMRif(lotto.getQtaInUMPrmMag());
+			eccedenza = eccedenza.subtract(riduzione);
+		}
+		return eccedenza;
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public List costruisciOrdineVenditaRigaLottoPrmListSelezioneMultipla() {
+		List lotti = new ArrayList();
+		Iterator<String> chiaviSelezionati = SelezioneMultiplaLottoTestori.getListLottiSelezioneMultipla(getChiaviLottiMultSel()).iterator();
 		while(chiaviSelezionati.hasNext()) {
 			String lottoKey = (String)chiaviSelezionati.next();
 			Lotto lt;
@@ -588,56 +673,15 @@ public class YOrdineVenditaRigaPrm extends OrdineVenditaRigaPrm {
 							rigaLotto.setQtaInUMPrmMag(giacenza);
 							rigaLotto.setQtaInUMRif(giacenza);
 
-							totQtaPrmMagLotti = totQtaPrmMagLotti.add(giacenza);
-
-							if (totQtaPrmMagLotti.compareTo(getServizioQta().getQuantitaInUMPrm()) > 0) {
-								// 1. Cerco una riga NON dummy con quantità diversa da 1
-								Optional<OrdineVenditaRigaLottoPrm> rigaDaRimuovere =
-										((ArrayList<OrdineVenditaRigaLottoPrm>) righeLotto).stream()
-										.filter(r -> !Lotto.LOTTO_DUMMY.equals(r.getIdLotto()))
-										.filter(r -> r.getQtaInUMPrmMag().compareTo(BigDecimal.ONE) != 0)
-										.findFirst();
-
-								if (rigaDaRimuovere.isPresent()) {
-									righeLotto.remove(rigaDaRimuovere.get());
-								} else {
-									// 2. Provo con il dummy
-									Optional<OrdineVenditaRigaLottoPrm> dummy =
-											((ArrayList<OrdineVenditaRigaLottoPrm>) righeLotto).stream()
-											.filter(r -> Lotto.LOTTO_DUMMY.equals(r.getIdLotto()))
-											.findFirst();
-									if (dummy.isPresent()) {
-										righeLotto.remove(dummy.get());
-									} else {
-										// 3. Errore
-										throw new IllegalStateException("Quantità lotti superiore al richiesto e nessuna riga modificabile trovata");
-									}
-								}
-							}
-							getRigheLotto().add(rigaLotto);
+							lotti.add(rigaLotto);
 						}
 					}
 				}
-			} catch (SQLException e) {
+			}catch (SQLException e) {
 				e.printStackTrace(Trace.excStream);
 			}
 		}
-		if(lottoDummy != null && totQtaPrmMagLotti.compareTo(getServizioQta().getQuantitaInUMPrm()) == 0) {
-			getRigheLotto().remove(lottoDummy);
-		}
-	}
-
-	public List<String> getListLottiSelezioneMultipla() {
-		List<String> listKeys = new ArrayList<String>();
-		String listaKeys = getChiaviLottiMultSel();
-		if(listaKeys == null || listaKeys.equals(""))
-			return listKeys;
-		java.util.StringTokenizer st = new java.util.StringTokenizer(listaKeys, ColonneFiltri.LISTA_SEP);
-		while (st.hasMoreTokens()) {
-			String stt = st.nextToken();
-			listKeys.add(stt);
-		}
-		return listKeys;
+		return lotti;
 	}
 
 	//72350 <
