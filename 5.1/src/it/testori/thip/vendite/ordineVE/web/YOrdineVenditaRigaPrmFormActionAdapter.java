@@ -6,7 +6,9 @@ import java.sql.SQLException;
 import javax.servlet.ServletException;
 
 import com.thera.thermfw.ad.ClassADCollection;
+import com.thera.thermfw.base.IniFile;
 import com.thera.thermfw.base.Trace;
+import com.thera.thermfw.common.ErrorMessage;
 import com.thera.thermfw.persist.PersistentObject;
 import com.thera.thermfw.web.ServletEnvironment;
 import com.thera.thermfw.web.WebForm;
@@ -74,6 +76,10 @@ public class YOrdineVenditaRigaPrmFormActionAdapter extends OrdineVenditaRigaPrm
 				url += SelezioneMultiplaLottoTestori.getParamsShowGrid("LottoSaldoRicerca", riga);
 				url += "&" + SelezioneMultiplaLottoTestori.getRestrictConditionsShowGrid(getStringParameter(se.getRequest(), CLASS_NAME),riga);
 				se.sendRequest(getServletContext(), url, false);
+			}else {
+				String errorPage = "/" + IniFile.getValue("thermfw.ini", "Web", "MessageActionHandler");
+				se.addErrorMessage(new ErrorMessage("BAS0000078","Salvare prima la riga"));
+				se.sendRequest(getServletContext(), errorPage, false);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace(Trace.excStream);

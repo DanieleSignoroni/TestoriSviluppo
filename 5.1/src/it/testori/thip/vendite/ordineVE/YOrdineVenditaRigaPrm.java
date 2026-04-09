@@ -576,27 +576,53 @@ public class YOrdineVenditaRigaPrm extends OrdineVenditaRigaPrm {
 			}
 		}else {
 			List<OrdineVenditaRigaLottoPrm> righe = getRigheLotto();
-			righe.addAll(nuoviLotti);
-			List righeNonDummy = new ArrayList();
-			((ArrayList<OrdineVenditaRigaLottoPrm>)righeLotto).stream().filter(r -> Lotto.LOTTO_DUMMY.equals((r.getIdLotto()))).findFirst().ifPresent(righeLotto::remove);
 			BigDecimal qtaRichiesta = getServizioQta().getQuantitaInUMPrm();
-			for (OrdineVenditaRigaLottoPrm lottoCorrente : righe) {
-				if(lottoCorrente.getIdLotto() != Lotto.LOTTO_DUMMY) { 
-					BigDecimal totaleLotti = (BigDecimal) caricaQuantitaLottoPublic(righe).get(1);
-					if (totaleLotti.compareTo(qtaRichiesta) <= 0) {
-						continue;
-					}
-					BigDecimal eccedenza = totaleLotti.subtract(qtaRichiesta);
-					// 1. Riduzione dummy
+
+			for (OrdineVenditaRigaLottoPrm nuovo : nuoviLotti) {
+
+				righe.add(nuovo);
+
+				BigDecimal totale = (BigDecimal) caricaQuantitaLottoPublic(righe).get(1);
+				if (totale.compareTo(qtaRichiesta) <= 0) {
+					continue;
+				}
+
+				BigDecimal eccedenza = totale.subtract(qtaRichiesta);
+				if (lottoDummy != null) {
 					eccedenza = riduciDummy(lottoDummy, eccedenza);
-					// 2. Riduzione lotti esistenti
-					eccedenza = riduciLottiEsistenti(righe, eccedenza);
-					// 3. Riduzione lotto corrente
-					eccedenza = riduciLotto(lottoCorrente, eccedenza);
-					// 4. Controllo finale
-					if (eccedenza.compareTo(BigDecimal.ZERO) > 0) {
-						throw new ThipException("Impossibile riallineare le quantità dei lotti");
+
+					if (lottoDummy.getQtaInUMPrmMag().compareTo(BigDecimal.ZERO) == 0) {
+						righe.remove(lottoDummy);
+						lottoDummy = null;
 					}
+				}
+
+				if (eccedenza.compareTo(BigDecimal.ZERO) > 0) {
+					for (OrdineVenditaRigaLottoPrm lotto : righe) {
+						if (eccedenza.compareTo(BigDecimal.ZERO) <= 0) {
+							break;
+						}
+						
+						if (lotto == nuovo) {
+							continue;		                
+						}
+						
+						if (Lotto.LOTTO_DUMMY.equals(lotto.getIdLotto())) {
+							continue;
+						}
+
+						BigDecimal qta = lotto.getQtaInUMPrmMag();
+
+						if (qta.compareTo(BigDecimal.ONE) > 0) {
+							BigDecimal riduzione = qta.subtract(BigDecimal.ONE).min(eccedenza);
+							lotto.setQtaInUMPrmMag(qta.subtract(riduzione));
+							lotto.setQtaInUMRif(lotto.getQtaInUMPrmMag());
+							eccedenza = eccedenza.subtract(riduzione);
+						}
+					}
+				}
+				if (eccedenza.compareTo(BigDecimal.ZERO) > 0) {
+					throw new ThipException("Impossibile riallineare le quantità dei lotti");
 				}
 			}
 		}
@@ -607,13 +633,13 @@ public class YOrdineVenditaRigaPrm extends OrdineVenditaRigaPrm {
 			return eccedenza;
 		}
 		BigDecimal qta = dummy.getQtaInUMPrmMag();
-		if (qta.compareTo(BigDecimal.ONE) > 0) {
-			BigDecimal riduzione = qta.subtract(eccedenza);
-			dummy.setQtaInUMPrmMag(riduzione);
-			dummy.setQtaInUMRif(riduzione);
-			return eccedenza.subtract(riduzione);
-		}
-		return eccedenza;
+		BigDecimal riduzione = qta.min(eccedenza);
+		BigDecimal nuovaQta = qta.subtract(riduzione);
+		
+		dummy.setQtaInUMPrmMag(nuovaQta);
+		dummy.setQtaInUMRif(nuovaQta);
+
+		return eccedenza.subtract(riduzione);
 	}
 
 	public BigDecimal riduciLottiEsistenti(List<OrdineVenditaRigaLottoPrm> lotti,
