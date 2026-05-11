@@ -9,6 +9,7 @@ import com.thera.thermfw.ad.ClassADCollection;
 import com.thera.thermfw.base.IniFile;
 import com.thera.thermfw.base.Trace;
 import com.thera.thermfw.common.ErrorMessage;
+import com.thera.thermfw.persist.Factory;
 import com.thera.thermfw.persist.PersistentObject;
 import com.thera.thermfw.web.ServletEnvironment;
 import com.thera.thermfw.web.WebForm;
@@ -16,6 +17,8 @@ import com.thera.thermfw.web.WebToolBar;
 import com.thera.thermfw.web.WebToolBarButton;
 
 import it.testori.thip.vendite.generaleVE.GestioneCalcoloCosti;
+import it.thera.thip.base.documenti.web.DocumentoDatiSessione;
+import it.thera.thip.datiTecnici.modpro.web.ValorizzazioneModelloDatiSessione;
 import it.thera.thip.vendite.generaleVE.web.SelezioneMultiplaLottoTestori;
 import it.thera.thip.vendite.ordineVE.OrdineVenditaRigaPrm;
 import it.thera.thip.vendite.ordineVE.web.OrdineVenditaRigaPrmFormActionAdapter;
@@ -35,6 +38,7 @@ import it.thera.thip.vendite.ordineVE.web.OrdineVenditaRigaPrmFormActionAdapter;
  * Revisions:
  * Number   Date        Owner    Description
  * 72141    22/09/2025  DSSOF3   Prima stesura
+ * 72461	11/05/2026	DSSOF3	 Riallineamento per adeguare funzione post implementi fix 47894.
  */
 
 public class YOrdineVenditaRigaPrmFormActionAdapter extends OrdineVenditaRigaPrmFormActionAdapter {
@@ -51,7 +55,7 @@ public class YOrdineVenditaRigaPrmFormActionAdapter extends OrdineVenditaRigaPrm
 				toolBar.addButton(webToolBarButGestioneCosti);
 		}
 	}
-
+	
 	@Override
 	protected void otherActions(ClassADCollection cadc, ServletEnvironment se) throws ServletException, IOException {
 		String azione = getAzione(se);
@@ -88,8 +92,19 @@ public class YOrdineVenditaRigaPrmFormActionAdapter extends OrdineVenditaRigaPrm
 
 	protected void interrogazioneValorizzazioneModProCosto(ClassADCollection cadc, ServletEnvironment se) throws ServletException, IOException {
 		OrdineVenditaRigaPrm offCliRigaPrm = getObject(getStringParameter(se.getRequest(), "thKey"));
-
-		se.sendRequest(getServletContext(), se.getServletPath() + "it.thera.thip.datiTecnici.modpro.web.InterrogValorizFormActionAdapter"
-				+ GestioneCalcoloCosti.getInstance().getParamsInterrogazioneModProCos(offCliRigaPrm), false);
+		
+		//72461 rem <
+		/*se.sendRequest(getServletContext(), se.getServletPath() + "it.thera.thip.datiTecnici.modpro.web.InterrogValorizFormActionAdapter"
+		+ GestioneCalcoloCosti.getInstance().getParamsInterrogazioneModProCos(offCliRigaPrm), false);*/
+		//72461 rem >
+		
+		//72461 <
+		String url = "it.thera.thip.datiTecnici.modpro.web.InterrogValorizFormActionAdapter";
+		ValorizzazioneModelloDatiSessione datiSessione = (ValorizzazioneModelloDatiSessione) Factory.createObject(ValorizzazioneModelloDatiSessione.class);
+		datiSessione.salvaInSessione(se);
+		String params = GestioneCalcoloCosti.getInstance().getParamsInterrogazioneModProCos(offCliRigaPrm);
+		params += "&"+DocumentoDatiSessione.CHIAVE_DATI_SESSIONE+"="+datiSessione.getChiaveDatiSessione();
+		se.sendRequest(getServletContext(), se.getServletPath() + url + params, false);
+		//72461 >
 	}
 }

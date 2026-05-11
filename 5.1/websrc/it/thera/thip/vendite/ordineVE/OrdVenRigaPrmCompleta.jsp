@@ -1,5 +1,5 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
-                      "file:///C:/pthsvil/deps/T_Thip_40/Thip/4.0/websrcsvil/dtd/xhtml1-transitional.dtd">
+                      "file:///D:\3rdParty\Panthera4.6.0\websrc-complete\dtd/xhtml1-transitional.dtd">
 <!-- 34124 -->
 <html>
 <!-- WIZGEN Therm 2.0.0 as Form - multiBrowserGen = true -->
@@ -1296,16 +1296,19 @@ label.write(out); }%>
 %><label class="<%=label.getClassType()%>" for="Provvigione1AgenteField"><%label.write(out);%></label><%}%>
 									</td>
 									<td>
+										<!-- Fix 49049 - inizio -->
+										<!-- <input type="text" id="Provvigione1AgenteField" name="Provvigione1AgenteField" size="5"/>-->
 										<% 
   WebTextInput OrdineVenditaRigaPrmProvvigione1Agente =  
      new com.thera.thermfw.web.WebTextInput("OrdineVenditaRigaPrm", "Provvigione1Agente"); 
   OrdineVenditaRigaPrmProvvigione1Agente.setOnChange("cambiataProvv1Agente()"); 
   OrdineVenditaRigaPrmProvvigione1Agente.setParent(OrdineVenditaRigaPrmForm); 
 %>
-<input class="<%=OrdineVenditaRigaPrmProvvigione1Agente.getClassType()%>" id="<%=OrdineVenditaRigaPrmProvvigione1Agente.getId()%>" maxlength="<%=OrdineVenditaRigaPrmProvvigione1Agente.getMaxLength()%>" name="<%=OrdineVenditaRigaPrmProvvigione1Agente.getName()%>" size="5" type="text"><% 
+<input class="<%=OrdineVenditaRigaPrmProvvigione1Agente.getClassType()%>" id="<%=OrdineVenditaRigaPrmProvvigione1Agente.getId()%>" maxlength="<%=OrdineVenditaRigaPrmProvvigione1Agente.getMaxLength()%>" name="<%=OrdineVenditaRigaPrmProvvigione1Agente.getName()%>" size="<%=OrdineVenditaRigaPrmProvvigione1Agente.getSize()%>" type="text"><% 
   OrdineVenditaRigaPrmProvvigione1Agente.write(out); 
 %>
 
+										<!-- Fix 49049 - fine -->
 										<% 
   WebCheckBox OrdineVenditaRigaPrmDifferenzaPrezzoAgente =  
      new com.thera.thermfw.web.WebCheckBox("OrdineVenditaRigaPrm", "DifferenzaPrezzoAgente"); 
@@ -1366,16 +1369,19 @@ label.write(out); }%>
 %><label class="<%=label.getClassType()%>" for="Provvigione1SubagenteField"><%label.write(out);%></label><%}%>
 									</td>
 									<td>
+										<!-- Fix 49049 - inizio -->
+										<!--<input type="text" id="Provvigione1SubagenteField" name="Provvigione1SubagenteField" size="5"/>-->
 										<% 
   WebTextInput OrdineVenditaRigaPrmProvvigione1Subagente =  
      new com.thera.thermfw.web.WebTextInput("OrdineVenditaRigaPrm", "Provvigione1Subagente"); 
   OrdineVenditaRigaPrmProvvigione1Subagente.setOnChange("cambiataProvv1Subagente()"); 
   OrdineVenditaRigaPrmProvvigione1Subagente.setParent(OrdineVenditaRigaPrmForm); 
 %>
-<input class="<%=OrdineVenditaRigaPrmProvvigione1Subagente.getClassType()%>" id="<%=OrdineVenditaRigaPrmProvvigione1Subagente.getId()%>" maxlength="<%=OrdineVenditaRigaPrmProvvigione1Subagente.getMaxLength()%>" name="<%=OrdineVenditaRigaPrmProvvigione1Subagente.getName()%>" size="5" type="text"><% 
+<input class="<%=OrdineVenditaRigaPrmProvvigione1Subagente.getClassType()%>" id="<%=OrdineVenditaRigaPrmProvvigione1Subagente.getId()%>" maxlength="<%=OrdineVenditaRigaPrmProvvigione1Subagente.getMaxLength()%>" name="<%=OrdineVenditaRigaPrmProvvigione1Subagente.getName()%>" size="<%=OrdineVenditaRigaPrmProvvigione1Subagente.getSize()%>" type="text"><% 
   OrdineVenditaRigaPrmProvvigione1Subagente.write(out); 
 %>
 
+										<!-- Fix 49049 - fine -->
 										<% 
   WebCheckBox OrdineVenditaRigaPrmDifferenzaPrezzoSubagente =  
      new com.thera.thermfw.web.WebCheckBox("OrdineVenditaRigaPrm", "DifferenzaPrezzoSubagente"); 
@@ -1498,6 +1504,20 @@ label.write(out); }%>
 								<tr>
 									<td>
 										<table>
+											<!-- Fix 46932 inizio -->
+											<tr id="RegNCtr">
+												<td nowrap><%{  WebLabelCompound label = new com.thera.thermfw.web.WebLabelCompound(null, null, "OrdineVenditaRigaPrm", "RigaDocumentoPrv", null); 
+   label.setParent(OrdineVenditaRigaPrmForm); 
+%><label class="<%=label.getClassType()%>" for="RegistrazioneNConformita"><%label.write(out);%></label><%}%></td>
+												<td colspan="3" nowrap><% 
+  WebMultiSearchForm OrdineVenditaRigaPrmRegistrazioneNConformita =  
+     new com.thera.thermfw.web.WebMultiSearchForm("OrdineVenditaRigaPrm", "RegistrazioneNConformita", false, false, true, 4, null, null); 
+  OrdineVenditaRigaPrmRegistrazioneNConformita.setParent(OrdineVenditaRigaPrmForm); 
+  OrdineVenditaRigaPrmRegistrazioneNConformita.write(out); 
+%>
+<!--<span class="multisearchform" id="RegistrazioneNConformita"></span>--></td>
+											</tr>
+											<!-- Fix 46932 fine -->
 											<tr>
 												<!-- Campo Priorita -->
 												<td style="width: 153px">

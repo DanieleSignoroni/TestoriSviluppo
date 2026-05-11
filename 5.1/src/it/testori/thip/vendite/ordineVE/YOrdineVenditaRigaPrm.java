@@ -13,6 +13,7 @@ import java.util.Vector;
 
 import com.thera.thermfw.base.Trace;
 import com.thera.thermfw.cbs.ResolverTicklerParametric;
+import com.thera.thermfw.collector.BODataCollector;
 import com.thera.thermfw.common.BaseComponentsCollection;
 import com.thera.thermfw.common.ErrorMessage;
 import com.thera.thermfw.persist.BaseObject;
@@ -27,12 +28,16 @@ import com.thera.thermfw.persist.KeyHelper;
 import com.thera.thermfw.persist.OneToMany;
 import com.thera.thermfw.persist.PersistentObject;
 import com.thera.thermfw.persist.Proxy;
+import com.thera.thermfw.security.EntityNotFoundException;
 import com.thera.thermfw.security.Group;
 import com.thera.thermfw.security.User;
 import com.thera.thermfw.tickler.TicklerTmpl;
 
 import it.testori.thip.base.articolo.YArticoloCosto;
-import it.testori.thip.base.generale.AssocHdrTpDocDgt;
+import it.testori.thip.base.cliente.YAllegatiClienteVendita;
+import it.testori.thip.base.cliente.YClienteVendita;
+import it.testori.thip.base.generale.VincoloAssociazioneDocOrdVenRig;
+//import it.testori.thip.base.generale.AssocHdrTpDocDgt;
 import it.testori.thip.base.generaleVE.web.YCalcoloMarkup;
 import it.testori.thip.produzione.rifornLinea.YPsnDatiRifornimentoLinea;
 import it.testori.thip.vendite.generaleVE.GestioneCalcoloCosti;
@@ -90,6 +95,7 @@ import it.thera.thip.vendite.ordineVE.OrdineVenditaRigaPrm;
  * 72350	11/02/2026	DSSOF3	 Calcolo prezzo in EUR al salvataggio.
  * 72391	09/03/2026	DSSOF3	 In aggiornaDatiTestata() portare in testata il MAX delle date cons (cfm,rcs) se non null.
  * 72425	30/03/2026	DSSOF3	 Aggiunti metodi per lista di causali per le quali l'area applicativa non deve essere mandatory. Non considerare le righe annullate nella fase di cambio stato avanzamento dell'ordine testata.
+ * 72473    07/05/2026  DSSOF3	 Allegati, reperimento da cliente e non piu da associazione. Generazione containers al salvataggio.
  */
 
 public class YOrdineVenditaRigaPrm extends OrdineVenditaRigaPrm {
@@ -379,7 +385,8 @@ public class YOrdineVenditaRigaPrm extends OrdineVenditaRigaPrm {
 	//72247
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected void caricaAllegati(boolean controlloPresenti) {
-		Vector associazioniDef = AssocHdrTpDocDgt.recuperaAssociazioniDefault("OrdineVenditaRigaPrm", true);
+		//72473 inizio rem <
+		/*Vector associazioniDef = AssocHdrTpDocDgt.recuperaAssociazioniDefault("OrdineVenditaRigaPrm", true);
 		if(associazioniDef != null && associazioniDef.size() > 0) {
 			for (Iterator iterator = associazioniDef.iterator(); iterator.hasNext();) {
 				AssocHdrTpDocDgt associazione = (AssocHdrTpDocDgt) iterator.next();
@@ -395,7 +402,30 @@ public class YOrdineVenditaRigaPrm extends OrdineVenditaRigaPrm {
 				getYAllegati().add(allegato);
 
 			}
+		}*/
+		//72473 fine rem >
+		//72473 <
+		OrdineVendita tes = (OrdineVendita) getTestata();
+		if(tes != null 
+				&& tes.getCliente() != null
+				&& tes.getCliente() instanceof YClienteVendita) {
+			List allegatiCliente = ((YClienteVendita)tes.getCliente()).getAllegatiCliente();
+			Iterator iterAllegatiCliente = allegatiCliente.iterator();
+			while(iterAllegatiCliente.hasNext()) {
+				YAllegatiClienteVendita allegatoCliente = (YAllegatiClienteVendita) iterAllegatiCliente.next();
+
+				if(controlloPresenti && isAssociazioneAllegatoPresente(allegatoCliente.getIdTipoDocDgt()))
+					continue;
+
+				YAllegatiOrdVenRigPrm allegato = (YAllegatiOrdVenRigPrm) Factory.createObject(YAllegatiOrdVenRigPrm.class);
+				allegato.setOrdineVenditaRigaPrm(this);
+				allegato.setAssociazionedocumento(allegatoCliente.getAssocdoccliven());
+				allegato.setVincolo(allegatoCliente.getVincolo());
+
+				getYAllegati().add(allegato);
+			}
 		}
+		//72473 >
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -409,6 +439,41 @@ public class YOrdineVenditaRigaPrm extends OrdineVenditaRigaPrm {
 		return false;
 	}
 	//72247
+
+	//72473 <
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	protected void generaDocumentiPerAllegati() {
+		int generati = 0;
+		Iterator iterAllegati = getYAllegati().iterator();
+		while(iterAllegati.hasNext()) {
+			YAllegatiOrdVenRigPrm allegato = (YAllegatiOrdVenRigPrm) iterAllegati.next();
+			if(allegato.getVincolo() == VincoloAssociazioneDocOrdVenRig.OBBLIGATORIO_PER_EVASIONE
+					|| allegato.getVincolo() == VincoloAssociazioneDocOrdVenRig.OBBLIGATORIO_PER_SPEDIZIONE
+					|| allegato.getVincolo() == VincoloAssociazioneDocOrdVenRig.ALLEGATO_RICHIESTO_NON_VINCOLANTE) {
+				Vector docs = allegato.getDocumentiDigitaliCollegato();
+				if(docs.size() == 0) {
+					BODataCollector boDC;
+					try {
+						boDC = allegato.creaDocumentoDigitale();
+						boDC.setAutoCommit(false);
+						int rc = boDC.save();
+						if(rc == BODataCollector.OK) {
+							generati++;
+						}else {
+							getWarningList().addAll(boDC.getErrorList().getErrors());
+						}
+					} catch (EntityNotFoundException | SQLException e) {
+						e.printStackTrace(Trace.excStream);
+						getWarningList().add(new ErrorMessage("BAS0000078",e.getMessage()));
+					}
+				}
+			}			
+		}
+		if(generati > 0) {
+			getWarningList().add(new ErrorMessage("BAS0000135","Generati "+generati+" documenti digitali correttamente"));
+		}
+	}
+	//72473 >
 
 	@Override
 	protected void copiaValoriInOldRiga() {
@@ -480,8 +545,9 @@ public class YOrdineVenditaRigaPrm extends OrdineVenditaRigaPrm {
 			calcoloMarkup();
 		//72238
 
-		if(getTipoRiga() == TipoRiga.MERCE || getTipoRiga() == TipoRiga.OMAGGIO)
+		if(getTipoRiga() == TipoRiga.MERCE || getTipoRiga() == TipoRiga.OMAGGIO) {
 			caricaAllegati(true);
+		}
 
 		//72350 <
 		if(getTipoRiga() == TipoRiga.MERCE) {
@@ -552,6 +618,12 @@ public class YOrdineVenditaRigaPrm extends OrdineVenditaRigaPrm {
 				scadenzaCambioDataConsegnaCfm();
 			}
 			// 72317 >
+
+			//72473 <
+			if(getTipoRiga() == TipoRiga.MERCE || getTipoRiga() == TipoRiga.OMAGGIO) {
+				generaDocumentiPerAllegati();
+			}
+			//72473 >
 		}
 		return rc;
 	}
@@ -602,11 +674,11 @@ public class YOrdineVenditaRigaPrm extends OrdineVenditaRigaPrm {
 						if (eccedenza.compareTo(BigDecimal.ZERO) <= 0) {
 							break;
 						}
-						
+
 						if (lotto == nuovo) {
 							continue;		                
 						}
-						
+
 						if (Lotto.LOTTO_DUMMY.equals(lotto.getIdLotto())) {
 							continue;
 						}
@@ -635,7 +707,7 @@ public class YOrdineVenditaRigaPrm extends OrdineVenditaRigaPrm {
 		BigDecimal qta = dummy.getQtaInUMPrmMag();
 		BigDecimal riduzione = qta.min(eccedenza);
 		BigDecimal nuovaQta = qta.subtract(riduzione);
-		
+
 		dummy.setQtaInUMPrmMag(nuovaQta);
 		dummy.setQtaInUMRif(nuovaQta);
 
