@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE TDDML SYSTEM "../../../TDDML.dtd">
+<TDDML>
+  <!-- YMODALITA_PAGAMENTO (YMODALI) -->
+  <AlterTable schema="THIPPERS" name="YMODALITA_PAGAMENTO">
+    <AddConstraint>
+      <Constraint name="MotivoBloccoEvasio" refschema="THIP" reftable="MOT_BLOCCO_EVS" schema="THIPPERS" ondelete="Restrict">
+        <ColumnRef name="T01CD"/>
+        <ColumnRef name="R_BLOCCO_EVASIONE"/>
+      </Constraint>
+      <Constraint name="MotivoBloccoPianif" refschema="THIP" reftable="MOT_BLOCCO_ORD" schema="THIPPERS" ondelete="Restrict">
+        <ColumnRef name="T01CD"/>
+        <ColumnRef name="R_BLOCCO_PIANIFICAZIONE"/>
+      </Constraint>
+    </AddConstraint>
+  </AlterTable>
+</TDDML>

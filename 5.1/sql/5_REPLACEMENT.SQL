@@ -1,0 +1,3 @@
+    INSERT INTO <SCH>REPLACEMENT (ORIGINAL_NAME,REPLACING_NAME,TYPE,DISABLED) VALUES ('it.thera.thip.base.cliente.ModalitaPagamentoPrimrose', 'it.testori.thip.base.cliente.YModalitaPagamento', '0', 'N', 'N', null, null, null);
+    INSERT INTO <SCH>REPLACEMENT (ORIGINAL_NAME,REPLACING_NAME,TYPE,DISABLED) VALUES ('it.thera.thip.base.cliente.ModalitaPagamentoPrimroseTM', 'it.testori.thip.base.cliente.YModalitaPagamentoTM', '0', 'N', 'N', null, null, null);
+    INSERT INTO <SCH>REPLACEMENT (ORIGINAL_NAME,REPLACING_NAME,TYPE,DISABLED) VALUES ('ModalitaPagamento', 'YModalitaPagamento', '1', 'N', 'N', null, null, null);

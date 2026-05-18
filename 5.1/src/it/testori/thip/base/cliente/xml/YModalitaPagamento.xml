@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<customization>
+	<formcustomization customizePosition="ELEMENT"
+		customizeName="10" elementAD="DataFineValid">
+		<!-- CUST_ADD <tr> -->
+		<tr>
+			<td valign="top">
+				<label classHdr="YModalitaPagamento"
+					classRD="MotivoBloccoEvasione"></label>
+			</td>
+			<td valign="top">
+				<multisearchform name="MotivoBloccoEvasione"
+					classRD="MotivoBloccoEvasione" />
+			</td>
+		</tr>
+		<tr>
+			<td valign="top">
+				<label classHdr="YModalitaPagamento"
+					classRD="MotivoBloccoPianif"></label>
+			</td>
+			<td valign="top">
+				<multisearchform name="MotivoBloccoPianif"
+					classRD="MotivoBloccoPianif" />
+			</td>
+			<!-- CUST_START_REM -->
+		</tr>
+		<!-- CUST_END_REM -->
+	</formcustomization>
+</customization>
