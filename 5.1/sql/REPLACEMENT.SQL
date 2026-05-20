@@ -2,3 +2,5 @@
 # Class name : REPLACEMENT
  INSERT INTO <SCH>REPLACEMENT (ORIGINAL_NAME,REPLACING_NAME,TYPE,DISABLED,REPLACEMENT_APP,REQUEST,REPORT,FIX) VALUES ('it.thera.thip.acquisti.ordineAC.DocEvaAcqRigaSec', 'it.testori.thip.acquisti.ordineAC.YDocEvaAcqRigaSec', '0', 'N', 'N', null, null, null);
  INSERT INTO <SCH>REPLACEMENT (ORIGINAL_NAME,REPLACING_NAME,TYPE,DISABLED,REPLACEMENT_APP,REQUEST,REPORT,FIX) VALUES ('it.thera.thip.acquisti.ordineAC.DocEvaAcqRiga', 'it.testori.thip.acquisti.ordineAC.YDocEvaAcqRiga', '0', 'N', 'N', null, null, null);
+ INSERT INTO <SCH>REPLACEMENT (ORIGINAL_NAME,REPLACING_NAME,TYPE,DISABLED,REPLACEMENT_APP,REQUEST,REPORT,FIX) VALUES ('PropagaRiga', 'YPropagaRiga', '1', 'N', 'Y', null, null, null);
+ INSERT INTO <SCH>REPLACEMENT (ORIGINAL_NAME,REPLACING_NAME,TYPE,DISABLED,REPLACEMENT_APP,REQUEST,REPORT,FIX) VALUES ('it.thera.thip.base.comuniVenAcq.PropagaRiga', 'it.testori.thip.base.comuniVenAcq.YPropagaRiga', '0', 'N', 'N', null, null, null);

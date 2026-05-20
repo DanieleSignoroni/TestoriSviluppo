@@ -35,6 +35,11 @@ public class YDocEvaAcqRigaSec extends DocEvaAcqRigaSec {
 				&& getLavEsterna()
 				&& ((DocumentoAcquisto) this.getTestata()).getCausale().getAzioneMagazzino() == AzioneMagazzino.ENTRATA) {
 			BigDecimal giacenzaFornitore = this.getDocEvaAcqRiga().getQtaGiacenzaSaldo(this, null);
+			if(giacenzaFornitore == null)
+				giacenzaFornitore = BigDecimal.ZERO;
+			if(giacenzaFornitore.compareTo(this.getDocEvaAcqRiga().getRigaDoc().getQtaInUMAcq()) < 0) {
+				
+			}
 			if(stato == StatoAvanzamento.PROVVISORIO) {
 				this.getDocEvaAcqRiga().getRigaDoc().setQtaInUMAcq(giacenzaFornitore);
 				this.getDocEvaAcqRiga().getRigaDoc().setQtaInUMPrm(giacenzaFornitore);
