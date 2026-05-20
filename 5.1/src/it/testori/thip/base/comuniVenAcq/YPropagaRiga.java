@@ -19,7 +19,7 @@ import it.thera.thip.base.comuniVenAcq.PropagaRiga;
 /*
  * Revisions:
  * Number   Date        Owner    Description
- * 72XXX    20/05/2026  DSSOF3   Gestione propagazione settimanale.
+ * 72494    20/05/2026  DSSOF3   Gestione propagazione settimanale.
  */
 
 public class YPropagaRiga extends PropagaRiga {

@@ -222,23 +222,23 @@ public class PropagaRiga extends BusinessObjectAdapter implements BaseObject{
 		  int max = getNumRighe();
 		  Date dataRigaDestConsegnaConfermata = iDocOrig.getDataConsegnaConfermata();
 		  Date dataRigaDestConsegnaRichiesta = iDocOrig.getDataConsegnaRichiesta();
-		  //72XXX nullPointer check per ns pers che suvota qs data <
+		  //72494 nullPointer check per ns pers che suvota qs data <
 		  //boolean isDataConsegnaConfermataFineMesse = isDataFineMesse(dataRigaDestConsegnaConfermata);
 		  boolean isDataConsegnaConfermataFineMesse = false;
 		  if(dataRigaDestConsegnaConfermata != null)
 			  isDataConsegnaConfermataFineMesse = isDataFineMesse(dataRigaDestConsegnaConfermata);
-		  //72XXX >
-		  boolean isDataDestConsegnaRichiestaFineMesse = isDataFineMesse(dataRigaDestConsegnaRichiesta); //72XXX cambio parametro in quello corretto
+		  //72494 >
+		  boolean isDataDestConsegnaRichiestaFineMesse = isDataFineMesse(dataRigaDestConsegnaRichiesta); //72494 cambio parametro in quello corretto
 		  int passo = PersDatiAcq.getCurrentPersDatiAcq().getPassoNumerazioneRigaOrd();
 		  if(passo == 0) passo = 1;
 		  int seq = getNextSequenzaRiga(this);
 		  for(int i =1 ; i <= max ; i++ ) {
-			  //72XXX nullPointer check per ns pers che suvota qs data <
+			  //72494 nullPointer check per ns pers che suvota qs data <
 			  //Date newdateConsegnaConfermata = getDataSuccesive(dataRigaDestConsegnaConfermata,i,isDataConsegnaConfermataFineMesse);
 			  Date newdateConsegnaConfermata = null;
 			  if(dataRigaDestConsegnaConfermata != null)
 				  newdateConsegnaConfermata = getDataSuccesive(dataRigaDestConsegnaConfermata,i,isDataConsegnaConfermataFineMesse);
-			  //72XXX >
+			  //72494 >
 			  Date newdateConsegnaRichiesta = getDataSuccesive(dataRigaDestConsegnaRichiesta,i,isDataDestConsegnaRichiestaFineMesse);
 			  ordRigaDC = completaDatiNuovoRiga(ordRigaDC,newdateConsegnaConfermata,newdateConsegnaRichiesta,seq);
 			    if (ordRigaDC.check() == BODataCollector.ERROR) {

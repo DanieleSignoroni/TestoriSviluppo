@@ -23,7 +23,7 @@ import it.thera.thip.base.documenti.StatoAvanzamento;
 /*
  * Revisions:
  * Number   Date        Owner    Description
- * 72XXX    19/05/2026  DSSOF3   Prima stesura
+ * 72494    19/05/2026  DSSOF3   Prima stesura
  */
 
 public class YDocEvaAcqRigaSec extends DocEvaAcqRigaSec {
@@ -38,14 +38,13 @@ public class YDocEvaAcqRigaSec extends DocEvaAcqRigaSec {
 			if(giacenzaFornitore == null)
 				giacenzaFornitore = BigDecimal.ZERO;
 			if(giacenzaFornitore.compareTo(this.getDocEvaAcqRiga().getRigaDoc().getQtaInUMAcq()) < 0) {
-				
-			}
-			if(stato == StatoAvanzamento.PROVVISORIO) {
-				this.getDocEvaAcqRiga().getRigaDoc().setQtaInUMAcq(giacenzaFornitore);
-				this.getDocEvaAcqRiga().getRigaDoc().setQtaInUMPrm(giacenzaFornitore);
-			}else if (stato == StatoAvanzamento.DEFINITIVO) {
-				this.getDocEvaAcqRiga().getRigaDoc().setQtaInUMAcq(giacenzaFornitore);
-				this.getDocEvaAcqRiga().getRigaDoc().setQtaInUMPrm(giacenzaFornitore);
+				if(stato == StatoAvanzamento.PROVVISORIO) {
+					this.getDocEvaAcqRiga().getRigaDoc().setQtaInUMAcq(giacenzaFornitore);
+					this.getDocEvaAcqRiga().getRigaDoc().setQtaInUMPrm(giacenzaFornitore);
+				}else if (stato == StatoAvanzamento.DEFINITIVO) {
+					this.getDocEvaAcqRiga().getRigaDoc().setQtaInUMAcq(giacenzaFornitore);
+					this.getDocEvaAcqRiga().getRigaDoc().setQtaInUMPrm(giacenzaFornitore);
+				}
 			}
 		}
 	}
@@ -58,8 +57,17 @@ public class YDocEvaAcqRigaSec extends DocEvaAcqRigaSec {
 				&& getLavEsterna()
 				&& ((DocumentoAcquisto) this.getTestata()).getCausale().getAzioneMagazzino() == AzioneMagazzino.ENTRATA) {
 			BigDecimal giacenzaFornitore = this.getDocEvaAcqRiga().getQtaGiacenzaSaldo(this, null);
-			this.getDocEvaAcqRiga().getRigaDoc().setQtaInUMAcq(giacenzaFornitore);
-			this.getDocEvaAcqRiga().getRigaDoc().setQtaInUMPrm(giacenzaFornitore);
+			if(giacenzaFornitore == null)
+				giacenzaFornitore = BigDecimal.ZERO;
+			if(giacenzaFornitore.compareTo(this.getDocEvaAcqRiga().getRigaDoc().getQtaInUMAcq()) < 0) {
+				if(this.getDocEvaAcqRiga().getRigaDoc().getStatoAvanzamento() == StatoAvanzamento.PROVVISORIO) {
+					this.getDocEvaAcqRiga().getRigaDoc().setQtaInUMAcq(giacenzaFornitore);
+					this.getDocEvaAcqRiga().getRigaDoc().setQtaInUMPrm(giacenzaFornitore);
+				}else if (this.getDocEvaAcqRiga().getRigaDoc().getStatoAvanzamento() == StatoAvanzamento.DEFINITIVO) {
+					this.getDocEvaAcqRiga().getRigaDoc().setQtaInUMAcq(giacenzaFornitore);
+					this.getDocEvaAcqRiga().getRigaDoc().setQtaInUMPrm(giacenzaFornitore);
+				}
+			}
 		}
 		return sup;
 	}

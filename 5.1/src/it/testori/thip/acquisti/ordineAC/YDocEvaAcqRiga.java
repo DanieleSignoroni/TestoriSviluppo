@@ -21,7 +21,7 @@ import it.thera.thip.base.comuniVenAcq.AzioneMagazzino;
 /*
  * Revisions:
  * Number   Date        Owner    Description
- * 72XXX    19/05/2026  DSSOF3   Prima stesura
+ * 72494    19/05/2026  DSSOF3   Prima stesura
  */
 
 public class YDocEvaAcqRiga extends DocEvaAcqRiga {
