@@ -1,0 +1,5 @@
+    INSERT INTO <SCH>REPLACEMENT (ORIGINAL_NAME,REPLACING_NAME,TYPE,DISABLED,REPLACEMENT_APP,REQUEST,REPORT,FIX) VALUES ('it.thera.thip.logis.fis.RigaUds', 'it.testori.thip.logis.fis.YRigaUds', '0', 'N', 'N', null, null, null);
+    INSERT INTO <SCH>REPLACEMENT (ORIGINAL_NAME,REPLACING_NAME,TYPE,DISABLED,REPLACEMENT_APP,REQUEST,REPORT,FIX) VALUES ('it.thera.thip.logis.fis.RigaUdsTM', 'it.testori.thip.logis.fis.YRigaUdsTM', '0', 'N', 'N', null, null, null);
+    INSERT INTO <SCH>REPLACEMENT (ORIGINAL_NAME,REPLACING_NAME,TYPE,DISABLED,REPLACEMENT_APP,REQUEST,REPORT,FIX) VALUES ('RigaUds', 'YRigaUds', '1', 'N', 'N', null, null, null);
+
+	INSERT INTO <SCH>REPLACEMENT (ORIGINAL_NAME,REPLACING_NAME,TYPE,DISABLED,REPLACEMENT_APP,REQUEST,REPORT,FIX) VALUES ('it.thera.thip.logis.fis.TestataUds', 'it.testori.thip.logis.fis.YTestataUds', '0', 'N', 'N', null, null, null);

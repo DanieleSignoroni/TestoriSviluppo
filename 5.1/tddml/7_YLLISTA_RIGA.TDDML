@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE TDDML SYSTEM "../../../TDDML.dtd">
+<TDDML>
+  <!-- YLLISTA_RIGA (YLLISTA): Riga lista; -->
+  <CreateTable schema="THIPPERS" name="YLLISTA_RIGA" shortname="YLLISTA">
+    <Column name="COD_SOCIETA" shortname="COD_SOCIET" type="char" length="3" nullable="no"/>
+    <Column name="COD_LISTA" shortname="COD_LISTA" type="char" length="20" nullable="no"/>
+    <Column name="CODICE" shortname="CODICE" type="integer" nullable="no"/>
+    <Column name="PESO_NETTO" shortname="PESO_NETTO" type="decimal" length="19" scale="6" nullable="yes"/>
+  </CreateTable>
+  <CreateIndex schema="THIPPERS" name="YLLISTA_RIGA_I01" tabschema="THIPPERS" tabname="YLLISTA_RIGA" shortname="YLLIST_I01" unique="yes">
+    <IndexCol name="COD_SOCIETA" order="Asc"/>
+    <IndexCol name="COD_LISTA" order="Asc"/>
+    <IndexCol name="CODICE" order="Asc"/>
+  </CreateIndex>
+  <AlterTable schema="THIPPERS" name="YLLISTA_RIGA">
+    <AddPrimaryKey>
+      <PrimaryKey>
+        <ColumnRef name="COD_SOCIETA"/>
+        <ColumnRef name="COD_LISTA"/>
+        <ColumnRef name="CODICE"/>
+      </PrimaryKey>
+    </AddPrimaryKey>
+  </AlterTable>
+  <Comment>
+    <CommentTable schema="THIPPERS" name="YLLISTA_RIGA" text="Riga lista">
+      <CommentColumn name="COD_SOCIETA" text="Impresa C."/>
+      <CommentColumn name="COD_LISTA" text="Testata"/>
+      <CommentColumn name="CODICE" text="Codice"/>
+      <CommentColumn name="PESO_NETTO" text="Peso netto"/>
+    </CommentTable>
+    <CommentIndex schema="THIPPERS" name="YLLISTA_RIGA_I01" text="Primary Key"/>
+  </Comment>
+  <Grant schema="THIPPERS" name="YLLISTA_RIGA"/>
+</TDDML>

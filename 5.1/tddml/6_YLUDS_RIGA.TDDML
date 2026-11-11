@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE TDDML SYSTEM "../../../TDDML.dtd">
+<TDDML>
+  <!-- YLUDS_RIGA (YLUDS_R): Riga uds; -->
+  <CreateTable schema="THIPPERS" name="YLUDS_RIGA" shortname="YLUDS_R">
+    <Column name="COD_UDS" shortname="COD_UDS" type="char" length="20" nullable="no"/>
+    <Column name="CODICE" shortname="CODICE" type="integer" nullable="no"/>
+    <Column name="PESO_NETTO" shortname="PESO_NETTO" type="decimal" length="19" scale="6" nullable="yes"/>
+  </CreateTable>
+  <CreateIndex schema="THIPPERS" name="YLUDS_RIGA_I01" tabschema="THIPPERS" tabname="YLUDS_RIGA" shortname="YLUDS__I01" unique="yes">
+    <IndexCol name="COD_UDS" order="Asc"/>
+    <IndexCol name="CODICE" order="Asc"/>
+  </CreateIndex>
+  <AlterTable schema="THIPPERS" name="YLUDS_RIGA">
+    <AddPrimaryKey>
+      <PrimaryKey>
+        <ColumnRef name="COD_UDS"/>
+        <ColumnRef name="CODICE"/>
+      </PrimaryKey>
+    </AddPrimaryKey>
+  </AlterTable>
+  <Comment>
+    <CommentTable schema="THIPPERS" name="YLUDS_RIGA" text="Riga uds">
+      <CommentColumn name="COD_UDS" text="Testata UdS"/>
+      <CommentColumn name="CODICE" text="Riga UdS"/>
+      <CommentColumn name="PESO_NETTO" text="Peso netto"/>
+    </CommentTable>
+    <CommentIndex schema="THIPPERS" name="YLUDS_RIGA_I01" text="Primary Key"/>
+  </Comment>
+  <Grant schema="THIPPERS" name="YLUDS_RIGA"/>
+</TDDML>

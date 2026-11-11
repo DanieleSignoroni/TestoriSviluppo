@@ -1,0 +1,1 @@
+    INSERT INTO <SCH>REPLACEMENT (ORIGINAL_NAME,REPLACING_NAME,TYPE,DISABLED,REPLACEMENT_APP,REQUEST,REPORT,FIX) VALUES ('it.thera.thip.logis.lgb.RigaListaTM', 'it.testori.thip.logis.lgb.YRigaListaTM', '0', 'N', 'N', null, null, null);
