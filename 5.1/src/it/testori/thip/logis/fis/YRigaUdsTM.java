@@ -19,7 +19,7 @@ import it.thera.thip.logis.fis.RigaUdsTM;
 /*
  * Revisions:
  * Number   Date        Owner    Description
- * 72XXX    11/11/2026  DSSOF3   Prima stesura
+ * 72749    11/11/2026  DSSOF3   Prima stesura
  */
 
 public class YRigaUdsTM extends RigaUdsTM {

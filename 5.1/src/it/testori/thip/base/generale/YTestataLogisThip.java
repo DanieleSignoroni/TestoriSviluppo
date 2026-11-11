@@ -27,7 +27,7 @@ import it.thera.thip.vendite.documentoVE.DocumentoVendita;
  * Revisions:
  * Number   Date        Owner    Description
  * 72178    21/10/2025  DSSOF3   Prima stesura
- * 72XXX	11/11/2026	DSSOF3	 Riportare peso netto su thip.
+ * 72749	11/11/2026	DSSOF3	 Riportare peso netto su thip.
  */
 
 public class YTestataLogisThip extends TestataLogisThip {
@@ -60,11 +60,11 @@ public class YTestataLogisThip extends TestataLogisThip {
 	@Override
 	public DocumentoVenRigaPrm trascodificaDatiPersonalizzati(RigaLogisThip rlt, DocumentoVenRigaPrm dvr) {
 		dvr = super.trascodificaDatiPersonalizzati(rlt, dvr);
-		//72XXX <
+		//72749 <
 		if(rlt instanceof YRigaLogisThip) {
 			dvr.setPesoNetto(((YRigaLogisThip)rlt).getPesoNetto());
 		}
-		//72XXX >
+		//72749 >
 		return dvr;
 	}
 }

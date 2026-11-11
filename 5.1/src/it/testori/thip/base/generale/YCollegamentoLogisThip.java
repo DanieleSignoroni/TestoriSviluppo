@@ -34,7 +34,7 @@ import it.thera.thip.vendite.documentoVE.DocumentoVendita;
  * Number   Date        Owner    Description
  * 72178    21/10/2025  DSSOF3   Prima stesura
  * 72233	02/12/2025	DSSOF3	 Lock type in YCostantiTestori.documentoVenditaTestataLista
- * 72XXX	11/11/2026	DSSOF3	 Settaggio peso netto.
+ * 72749	11/11/2026	DSSOF3	 Settaggio peso netto.
  */
 
 public class YCollegamentoLogisThip extends CollegamentoLogisThip {
@@ -66,12 +66,12 @@ public class YCollegamentoLogisThip extends CollegamentoLogisThip {
 			}
 		}
 		
-		//72XXX <
+		//72749 <
 		if(rl != null
 				&& rl instanceof YRigaLista
 				&& rlt instanceof YRigaLogisThip)
 			((YRigaLogisThip)rlt).setPesoNetto(((YRigaLista)rl).getPesoNetto());
-		//72XXX >
+		//72749 >
 
 		return rlt;
 	}

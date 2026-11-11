@@ -262,10 +262,10 @@ protected void setValues(ClassADCollection cadc, BODataCollector boDC, ServletEn
 				}
 			else
 			{
-				//72XXX Softre <
+				//72749 Softre <
 				BigDecimal pesoNetto = tu.getPesoLordo().subtract(tu.getTara());
 				out.println("parent.setAttValue('pesoNetto', parseFloat('" + pesoNetto + "').toFixed(6));");
-				//72XXX Softre >
+				//72749 Softre >
 				out.println("parent.clearMessage();");
 			}
 		}
