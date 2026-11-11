@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <customization>
-  <formcustomization customizePosition="START_TABBED" customizeName="7">
-  </formcustomization>
+	<formcustomization customizePosition="ELEMENT"
+		customizeName="10" elementAD="AllestimentoRiga">
+		<!-- CUST_ADD <tr> -->
+		<tr>
+			<td>
+				<label classHdr="YRigaLista"
+					classAD="PesoNetto"></label>
+			</td>
+			<td valign="top">
+				<textinput name="PesoNetto"
+					classAD="PesoNetto" />
+			</td>
+			<!-- CUST_START_REM -->
+		</tr>
+		<!-- CUST_END_REM -->
+	</formcustomization>
 </customization>
