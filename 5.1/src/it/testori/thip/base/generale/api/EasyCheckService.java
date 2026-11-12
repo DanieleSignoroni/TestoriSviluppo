@@ -50,6 +50,7 @@ import it.thera.thip.magazzino.generalemag.Lotto;
 import it.thera.thip.magazzino.movimenti.MovimentoMagazzino;
 import it.thera.thip.magazzino.saldi.SaldoMagLotto;
 import it.thera.thip.produzione.documento.CausaleDocProduzione;
+import it.thera.thip.produzione.documento.CMDocPrdEsec;
 import it.thera.thip.produzione.documento.DocumentoPrdRigaLottoMat;
 import it.thera.thip.produzione.documento.DocumentoPrdRigaLottoMatTM;
 import it.thera.thip.produzione.documento.DocumentoPrdRigaLottoVrs;
@@ -178,7 +179,6 @@ public class EasyCheckService {
 
 								materiale.getLottiMateriali().add(atvEsecLtMat);
 
-								BODataCollector boDC = YCostantiTestori.createDataCollector("DocumentoProduzione");
 								docPrdPrel = creaDocumentoProduzioneEasyCheck(atvEsec.getOrdineEsecutivo(), atvEsec, qtaPrel, BigDecimal.ZERO, null, null, null, true);
 								docPrdPrel.setMinutiRilevati(BigDecimal.ONE);
 								docPrdPrel.caricaRighe(DatiComuniEstesi.INCOMPLETO);
@@ -208,24 +208,23 @@ public class EasyCheckService {
 								if(dipByOpCode != null)
 									docPrdPrel.setDichiarante(dipByOpCode);
 
-								Vector errorCnf = docPrdPrel.passaggioStatoSospesoValido();
-								if(ErrorUtils.getInstance().areAllWarnings(new Vector<ErrorMessage>(errorCnf))) {
-									boDC.setBo(docPrdPrel);
-									boDC.loadAttValue();
-									boDC.setAutoCommit(false);
-									int ret = boDC.save();
-									if (ret != BODataCollector.OK) {
-										errors.addAll(boDC.getErrorList().getErrors());
-										status = Status.BAD_REQUEST;
-									}
-								}else {
-									errors.addAll(errorCnf);
+								if(!salvaEConvalidaDocumentoProduzione(docPrdPrel, null, errors)) {
 									status = Status.BAD_REQUEST;
-									ConnectionManager.rollback();
 								}
 							}
 						}
-						if(ErrorUtils.getInstance().areAllWarnings(new Vector<ErrorMessage>(errors))) {
+						if(status == Status.OK && ErrorUtils.getInstance().areAllWarnings(new Vector<ErrorMessage>(errors))) {
+							// La convalida del prelievo ha aggiornato l'ordine su un'altra connessione.
+							String attivitaKey = atvEsec.getKey();
+							atvEsec = (AttivitaEsecutiva) Factory.createObject(AttivitaEsecutiva.class);
+							atvEsec.setKey(attivitaKey);
+							if(!atvEsec.retrieve()) {
+								throw new SQLException("Attivita esecutiva non trovata dopo il prelievo: "+attivitaKey);
+							}
+							prodotto = atvEsec.getAtvEsecPrdPrimario();
+							if(prodotto == null) {
+								throw new SQLException("Prodotto primario non trovato dopo il prelievo: "+attivitaKey);
+							}
 							//..Carico il lotto (pezza specolata) sul prodotto, se non esiste lo creo
 							BODataCollector boDCNewLt = generaLottoPezzaLavorata(pezza, prodotto);
 							if(boDCNewLt.getErrorList().getErrors().isEmpty()) {
@@ -272,49 +271,36 @@ public class EasyCheckService {
 									rigaVrsLt.setQtaVrsUmPrm(qtaLorda);
 								}
 
-								//.Creo il data collector e salvo..
-								BODataCollector boDC = YCostantiTestori.createDataCollector("DocumentoProduzione");
 								//docPrd.setMinutiRilevati(BigDecimal.ONE);
 								Dipendente dipByOpCode = recuperaDipendenteByOperatorCode(pezza.getOperatorCode());
 								if(dipByOpCode != null)
 									docPrd.setDichiarante(dipByOpCode);
 
-								Vector errorCnf = docPrd.passaggioStatoSospesoValido();
-								if(ErrorUtils.getInstance().areAllWarnings(new Vector<ErrorMessage>(errorCnf))) {
-									boDC.setBo(docPrd);
-									boDC.loadAttValue();
-									boDC.setAutoCommit(false);
-									int ret = boDC.save();
-									if (ret == BODataCollector.OK) {
-										//.Se tutto ok riporto i riferimenti del documento di produzione sul lotto
-										lottoPrd.setRifDocProd(docPrd.getNumeroDocFormattato());
-										lottoPrd.setRifRigaDocProd(docPrd.getRigaVersamentoProdottoPrimario().getIdRigaAttivita().toString());
-										lottoPrd.setDataDocProd(docPrd.getDataDichiarazione());
-										lottoPrd.save();
-
-										result.put("message", "Creato correttamente il documento di produzione : "+docPrd.getNumeroDocFormattato());
-
-										ConnectionManager.commit();
-									}else {
-										errors.addAll(boDC.getErrorList().getErrors());
-										status = Status.BAD_REQUEST;
-										ConnectionManager.rollback();
-									}
+								if(salvaEConvalidaDocumentoProduzione(docPrd, lottoPrd, errors)) {
+									result.put("message", "Creato correttamente il documento di produzione : "+docPrd.getNumeroDocFormattato());
 								}else {
-									errors.addAll(errorCnf);
 									status = Status.BAD_REQUEST;
-									ConnectionManager.rollback();
 								}
 							}else {
 								errors.addAll(boDCNewLt.getErrorList().getErrors());
 								status = Status.BAD_REQUEST;
-								ConnectionManager.rollback();
 							}
 						}
 					}catch (SQLException e) {
 						errors.add(new ErrorMessage("BAS0000078","Eccezione non gestita: "+e.getMessage()));
 						e.printStackTrace(Trace.excStream);
 						status = Status.INTERNAL_SERVER_ERROR;
+					} finally {
+						// I documenti sono gia' conclusi singolarmente, come nel caricamento standard.
+						// Ripulisce eventuali scritture rimaste sulla connessione chiamante.
+						try {
+							ConnectionManager.rollback();
+						} catch(SQLException rollbackException) {
+							rollbackException.printStackTrace(Trace.excStream);
+							errors.add(new ErrorMessage("BAS0000078", "Rollback EasyCheck non riuscito: "+rollbackException.getMessage()));
+							result.remove("message");
+							status = Status.INTERNAL_SERVER_ERROR;
+						}
 					}
 				}else {
 					errors.add(new ErrorMessage("BAS0000078","Non e' stato trovato nessuna prodotto primario nell'attivita: "+KeyHelper.formatKeyString(atvEsec.getKey())));
@@ -336,6 +322,115 @@ public class EasyCheckService {
 		response.put("response", result);
 		response.put("status", status);
 		return response;
+	}
+
+	/**
+	 * Come CMDocPrdEsec: persiste il nuovo documento sospeso prima della convalida.
+	 * Il commit rende visibili anche i lotti alla connessione separata.
+	 * Se la convalida fallisce, prima annulla i movimenti e poi cancella il documento.
+	 */
+	@SuppressWarnings("unchecked")
+	protected boolean salvaEConvalidaDocumentoProduzione(DocumentoProduzione documento, Lotto lottoProdotto,
+			Collection<ErrorMessage> errors) throws SQLException {
+		if(documento.isOnDB()) {
+			throw new SQLException("La creazione EasyCheck richiede un nuovo documento di produzione: "+documento.getKey());
+		}
+		documento.getDatiComuniEstesi().setStato(DatiComuniEstesi.SOSPESO);
+		BODataCollector boDC = YCostantiTestori.createDataCollector("DocumentoProduzione");
+		boDC.setAutoCommit(false);
+		boDC.setBo(documento);
+		boDC.loadAttValue();
+		int ret = boDC.save();
+		errors.addAll(boDC.getErrorList().getErrors());
+		if(ret != BODataCollector.OK) {
+			if(ErrorUtils.getInstance().areAllWarnings(new Vector<ErrorMessage>(errors))) {
+				errors.add(new ErrorMessage("BAS0000078", "Documento sospeso non salvato: "+documento.getKey()+" (esito "+ret+")"));
+			}
+			return false;
+		}
+		ConnectionManager.commit();
+
+		boolean nuovaConnessione = false;
+		boolean convalidato = false;
+		Exception erroreConvalida = null;
+		try {
+			ConnectionManager.pushConnection();
+			nuovaConnessione = true;
+			// Una nuova istanza rilegge anche le collezioni, senza accedere ai campi protetti Thera.
+			DocumentoProduzione daConvalidare = (DocumentoProduzione) Factory.createObject(DocumentoProduzione.class);
+			daConvalidare.setKey(documento.getKey());
+			if(!daConvalidare.retrieve()) {
+				throw new SQLException("Documento sospeso non trovato per la convalida: "+documento.getKey());
+			}
+			Vector<ErrorMessage> erroriConvalida = new Vector<ErrorMessage>();
+			erroriConvalida.addAll(daConvalidare.cancellaRigheQtaZero());
+			if(ErrorUtils.getInstance().areAllWarnings(erroriConvalida)) {
+				erroriConvalida.addAll(daConvalidare.passaggioStatoSospesoValido());
+			}
+			errors.addAll(erroriConvalida);
+			if(ErrorUtils.getInstance().areAllWarnings(erroriConvalida)) {
+				if(daConvalidare.save() < 0) {
+					throw new SQLException("Documento convalidato non salvato: "+documento.getKey());
+				}
+				if(lottoProdotto != null) {
+					// Rilegge il lotto: la convalida puo' averne aggiornato dati e timestamp.
+					Lotto lottoDaAggiornare = (Lotto) Factory.createObject(Lotto.class);
+					lottoDaAggiornare.setKey(lottoProdotto.getKey());
+					if(!lottoDaAggiornare.retrieve()) {
+						throw new SQLException("Lotto non trovato dopo la convalida: "+lottoProdotto.getKey());
+					}
+					lottoDaAggiornare.setRifDocProd(daConvalidare.getNumeroDocFormattato());
+					lottoDaAggiornare.setRifRigaDocProd(daConvalidare.getRigaVersamentoProdottoPrimario().getIdRigaAttivita().toString());
+					lottoDaAggiornare.setDataDocProd(daConvalidare.getDataDichiarazione());
+					if(lottoDaAggiornare.save() < 0) {
+						throw new SQLException("Riferimenti del documento non salvati sul lotto: "+lottoProdotto.getKey());
+					}
+				}
+				ConnectionManager.commit();
+				convalidato = true;
+			}
+		} catch(SQLException | RuntimeException e) {
+			erroreConvalida = e;
+		} finally {
+			if(nuovaConnessione) {
+				try {
+					if(!convalidato) {
+						ConnectionManager.rollback();
+					}
+				} finally {
+					ConnectionManager.popConnection();
+				}
+			}
+		}
+
+		if(!convalidato) {
+			// Solo dopo il rollback della convalida: nessuno storno su movimenti gia' annullati.
+			try {
+				cancellaDocumentoProduzioneNonConvalidato(documento);
+			} catch(SQLException | RuntimeException e) {
+				if(erroreConvalida != null) {
+					e.addSuppressed(erroreConvalida);
+				}
+				throw e;
+			}
+		}
+		if(erroreConvalida instanceof SQLException) {
+			throw (SQLException) erroreConvalida;
+		}
+		if(erroreConvalida instanceof RuntimeException) {
+			throw (RuntimeException) erroreConvalida;
+		}
+		return convalidato;
+	}
+
+	protected void cancellaDocumentoProduzioneNonConvalidato(DocumentoProduzione documento) throws SQLException {
+		CMDocPrdEsec esecutore = (CMDocPrdEsec) Factory.createObject(CMDocPrdEsec.class);
+		int ret = esecutore.cancellaDocumenti(documento);
+		if(ret < 0) {
+			throw new SQLException("Cancellazione del documento EasyCheck non riuscita: "+documento.getKey()+" (esito "+ret+")");
+		}
+		ConnectionManager.commit();
+		esecutore.ripristinaNumeratore(documento.getNumeratoreHandler());
 	}
 
 	@SuppressWarnings("rawtypes")
