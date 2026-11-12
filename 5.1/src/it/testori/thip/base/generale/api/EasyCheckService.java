@@ -141,6 +141,7 @@ public class EasyCheckService {
 				AttivitaEsecProdotto prodotto = atvEsec.getAtvEsecPrdPrimario();
 				if(prodotto != null) {
 					try {
+						boolean prelievoCreato = false;
 						DocumentoProduzione docPrdPrel = esisteDocumentoProd(interfaceEasyCheck.getIdCausaleDocProdPrl(), bollaLavorazione, pezza.getRawPieceCode());
 						if(docPrdPrel == null) {
 							AttivitaEsecMateriale materiale = null;
@@ -210,6 +211,8 @@ public class EasyCheckService {
 
 								if(!salvaEConvalidaDocumentoProduzione(docPrdPrel, null, errors)) {
 									status = Status.BAD_REQUEST;
+								}else {
+									prelievoCreato = true;
 								}
 							}
 						}
@@ -277,7 +280,14 @@ public class EasyCheckService {
 									docPrd.setDichiarante(dipByOpCode);
 
 								if(salvaEConvalidaDocumentoProduzione(docPrd, lottoPrd, errors)) {
-									result.put("message", "Creato correttamente il documento di produzione : "+docPrd.getNumeroDocFormattato());
+									String message;
+									if(prelievoCreato) {
+										message = "Creati i documenti di produzione: prelievo "+docPrdPrel.getNumeroDocFormattato()
+												+" e versamento "+docPrd.getNumeroDocFormattato()+".";
+									}else {
+										message = "Creato il documento di produzione di versamento "+docPrd.getNumeroDocFormattato()+".";
+									}
+									result.put("message", message);
 								}else {
 									status = Status.BAD_REQUEST;
 								}
@@ -363,7 +373,7 @@ public class EasyCheckService {
 				throw new SQLException("Documento sospeso non trovato per la convalida: "+documento.getKey());
 			}
 			Vector<ErrorMessage> erroriConvalida = new Vector<ErrorMessage>();
-			erroriConvalida.addAll(daConvalidare.cancellaRigheQtaZero());
+			//erroriConvalida.addAll(daConvalidare.cancellaRigheQtaZero()); questo in ?
 			if(ErrorUtils.getInstance().areAllWarnings(erroriConvalida)) {
 				erroriConvalida.addAll(daConvalidare.passaggioStatoSospesoValido());
 			}
